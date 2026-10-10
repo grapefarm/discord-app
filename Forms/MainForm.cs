@@ -294,14 +294,25 @@ namespace discord_app.Forms
 
         private void BuildHeader(Panel panel)
         {
+            // 使用橫向流式排版 FlowLayoutPanel，徹底根除高 DPI 螢幕下文字被吃掉的問題
+            var pnlTabFlow = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Left,
+                AutoSize = true,
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = false,
+                BackColor = Color.Transparent,
+                Padding = new Padding(12, 14, 0, 0)
+            };
+
             // 標題「好友」
             var lblTitle = new Label
             {
-                Text = "👥 好友",
-                Font = new Font("Segoe UI", 11F, FontStyle.Bold),
+                Text = "👥  好友",
+                Font = new Font("Microsoft JhengHei UI", 11.5F, FontStyle.Bold),
                 ForeColor = TextWhite,
-                Location = new Point(16, 16),
-                AutoSize = true
+                AutoSize = true,
+                Margin = new Padding(0, 4, 12, 0)
             };
 
             var lblSep = new Label
@@ -309,56 +320,60 @@ namespace discord_app.Forms
                 Text = "|",
                 Font = new Font("Segoe UI", 12F),
                 ForeColor = ColorTranslator.FromHtml("#4e5058"),
-                Location = new Point(90, 15),
-                AutoSize = true
+                AutoSize = true,
+                Margin = new Padding(0, 3, 12, 0)
             };
 
-            // 分頁切換鈕：線上
+            // 分頁切換鈕：線上 (寬度給予充裕空間 78px)
             _btnTabOnline = new Button
             {
                 Text = "線上",
-                Size = new Size(60, 32),
-                Location = new Point(115, 14),
+                Size = new Size(78, 32),
                 FlatStyle = FlatStyle.Flat,
                 BackColor = ColorMainArea,
                 ForeColor = TextNormal,
-                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
-                Cursor = Cursors.Hand
+                Font = new Font("Microsoft JhengHei UI", 9.5F, FontStyle.Bold),
+                Cursor = Cursors.Hand,
+                Margin = new Padding(0, 0, 8, 0)
             };
             _btnTabOnline.FlatAppearance.BorderSize = 0;
             _btnTabOnline.Click += async (s, e) => await SwitchTabAsync(onlineOnly: true);
 
-            // 分頁切換鈕：全部
+            // 分頁切換鈕：全部 (寬度 78px)
             _btnTabAll = new Button
             {
                 Text = "全部",
-                Size = new Size(60, 32),
-                Location = new Point(180, 14),
+                Size = new Size(78, 32),
                 FlatStyle = FlatStyle.Flat,
                 BackColor = ColorTranslator.FromHtml("#383a40"),
                 ForeColor = TextWhite,
-                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
-                Cursor = Cursors.Hand
+                Font = new Font("Microsoft JhengHei UI", 9.5F, FontStyle.Bold),
+                Cursor = Cursors.Hand,
+                Margin = new Padding(0, 0, 12, 0)
             };
             _btnTabAll.FlatAppearance.BorderSize = 0;
             _btnTabAll.Click += async (s, e) => await SwitchTabAsync(onlineOnly: false);
 
-            // [C - Create] 新增好友按鈕 (Discord 招牌紫色 Blurple)
+            // [C - Create] 新增好友按鈕 (Discord 招牌紫色 Blurple，加大為 116px 避免縮放切字)
             var btnAddFriend = new Button
             {
                 Text = "+ 新增好友",
-                Size = new Size(100, 32),
-                Location = new Point(255, 14),
+                Size = new Size(116, 32),
                 FlatStyle = FlatStyle.Flat,
                 BackColor = ColorBlurple,
                 ForeColor = Color.White,
-                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
-                Cursor = Cursors.Hand
+                Font = new Font("Microsoft JhengHei UI", 9.5F, FontStyle.Bold),
+                Cursor = Cursors.Hand,
+                Margin = new Padding(0, 0, 10, 0)
             };
             btnAddFriend.FlatAppearance.BorderSize = 0;
             btnAddFriend.MouseEnter += (s, e) => btnAddFriend.BackColor = ColorBlurpleHover;
             btnAddFriend.MouseLeave += (s, e) => btnAddFriend.BackColor = ColorBlurple;
             btnAddFriend.Click += async (s, e) => await OnAddFriendClickAsync();
+
+            pnlTabFlow.Controls.AddRange(new Control[] {
+                lblTitle, lblSep, _btnTabOnline, _btnTabAll, btnAddFriend
+            });
 
             // [R - Read] 搜尋框包裝 Panel
             var pnlSearch = new Panel
@@ -376,16 +391,15 @@ namespace discord_app.Forms
                 BorderStyle = BorderStyle.None,
                 BackColor = ColorSearchBg,
                 ForeColor = TextWhite,
-                Font = new Font("Segoe UI", 9.5F)
+                Font = new Font("Microsoft JhengHei UI", 9.5F)
             };
             _txtSearch.PlaceholderText = "🔍 搜尋好友或備註...";
             _txtSearch.TextChanged += async (s, e) => await RefreshFriendsListAsync();
 
             pnlSearch.Controls.Add(_txtSearch);
 
-            panel.Controls.AddRange(new Control[] {
-                lblTitle, lblSep, _btnTabOnline, _btnTabAll, btnAddFriend, pnlSearch
-            });
+            panel.Controls.Add(pnlTabFlow);
+            panel.Controls.Add(pnlSearch);
         }
 
         #endregion
@@ -488,10 +502,10 @@ namespace discord_app.Forms
         {
             var pnlCard = new Panel
             {
-                Height = 64,
+                Height = 72, // 增加高度至 72px，提供舒適的留白呼吸感
                 Width = Math.Max(400, _flowFriends.ClientSize.Width - 40),
                 BackColor = ColorCardBg,
-                Margin = new Padding(0, 0, 0, 6),
+                Margin = new Padding(0, 0, 0, 8),
                 Cursor = Cursors.Default
             };
 
@@ -510,12 +524,12 @@ namespace discord_app.Forms
                 _ => "離線"
             };
 
-            // 2. 圓形頭像區
+            // 2. 圓形頭像區 (44 x 44, 垂直置中)
             var pnlAvatar = new Panel
             {
-                Size = new Size(42, 42),
-                Location = new Point(14, 11),
-                BackColor = ColorCardBg
+                Size = new Size(44, 44),
+                Location = new Point(14, 14),
+                BackColor = Color.Transparent
             };
             pnlAvatar.Paint += (s, e) =>
             {
@@ -523,52 +537,67 @@ namespace discord_app.Forms
 
                 // 畫深色圓底
                 using var bgBrush = new SolidBrush(ColorBlurple);
-                e.Graphics.FillEllipse(bgBrush, 0, 0, 40, 40);
+                e.Graphics.FillEllipse(bgBrush, 0, 0, 42, 42);
 
                 // 畫名稱首字
                 string initial = string.IsNullOrEmpty(friend.Username) ? "?" : friend.Username.Substring(0, 1).ToUpper();
-                using var font = new Font("Segoe UI", 13F, FontStyle.Bold);
+                using var font = new Font("Microsoft JhengHei UI", 13F, FontStyle.Bold);
                 using var textBrush = new SolidBrush(Color.White);
                 var size = e.Graphics.MeasureString(initial, font);
-                e.Graphics.DrawString(initial, font, textBrush, (40 - size.Width) / 2 + 1, (40 - size.Height) / 2 + 1);
+                e.Graphics.DrawString(initial, font, textBrush, (42 - size.Width) / 2 + 1, (42 - size.Height) / 2 + 1);
 
                 // 畫狀態圓點燈號 (右下角)
                 using var dotBrush = new SolidBrush(statusColor);
-                using var borderPen = new Pen(ColorCardBg, 2);
-                e.Graphics.FillEllipse(dotBrush, 26, 26, 14, 14);
-                e.Graphics.DrawEllipse(borderPen, 26, 26, 14, 14);
+                using var borderPen = new Pen(pnlCard.BackColor, 2);
+                e.Graphics.FillEllipse(dotBrush, 28, 28, 14, 14);
+                e.Graphics.DrawEllipse(borderPen, 28, 28, 14, 14);
             };
 
-            // 3. 好友名稱與 Tag
+            // 3. 【核心修正】：使用 FlowLayoutPanel 水平排列暱稱與 Tag，徹底解決重疊 Bug！
+            var pnlNameRow = new FlowLayoutPanel
+            {
+                Location = new Point(70, 14),
+                Size = new Size(pnlCard.Width - 140, 26),
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = false,
+                AutoSize = true,
+                BackColor = Color.Transparent,
+                Margin = Padding.Empty,
+                Padding = Padding.Empty
+            };
+
             var lblUsername = new Label
             {
                 Text = friend.Username,
-                Font = new Font("Segoe UI", 10.5F, FontStyle.Bold),
+                Font = new Font("Microsoft JhengHei UI", 11F, FontStyle.Bold),
                 ForeColor = TextWhite,
-                Location = new Point(68, 12),
-                AutoSize = true
+                AutoSize = true,
+                Margin = new Padding(0, 0, 6, 0)
             };
 
             var lblTag = new Label
             {
                 Text = friend.UserTag,
-                Font = new Font("Segoe UI", 9F),
+                Font = new Font("Segoe UI", 9.5F),
                 ForeColor = TextMuted,
-                Location = new Point(lblUsername.Right + 4, 14),
-                AutoSize = true
+                AutoSize = true,
+                Margin = new Padding(0, 2, 0, 0) // 微調下沉 2px，視覺對齊粗體字基準線
             };
 
-            // 4. 狀態與備註文字
+            pnlNameRow.Controls.Add(lblUsername);
+            pnlNameRow.Controls.Add(lblTag);
+
+            // 4. 狀態與備註文字 (給予充裕的 Y 軸間距)
             string noteDisplay = string.IsNullOrWhiteSpace(friend.Note) 
                 ? statusText 
-                : $"{statusText}  •  💬 {friend.Note}";
+                : $"{statusText}   •   💬 {friend.Note}";
 
             var lblSubtitle = new Label
             {
                 Text = noteDisplay,
-                Font = new Font("Segoe UI", 8.5F),
+                Font = new Font("Microsoft JhengHei UI", 9F),
                 ForeColor = TextMuted,
-                Location = new Point(68, 35),
+                Location = new Point(70, 42),
                 AutoSize = true
             };
 
@@ -578,7 +607,7 @@ namespace discord_app.Forms
                 Text = "🗑️",
                 Size = new Size(36, 36),
                 Anchor = AnchorStyles.Top | AnchorStyles.Right,
-                Location = new Point(pnlCard.Width - 50, 14),
+                Location = new Point(pnlCard.Width - 52, 18),
                 FlatStyle = FlatStyle.Flat,
                 BackColor = ColorTranslator.FromHtml("#232428"),
                 ForeColor = TextMuted,
@@ -615,15 +644,22 @@ namespace discord_app.Forms
             // 7. Hover 微亮回饋動畫感
             void ApplyHover(Control ctrl)
             {
-                ctrl.MouseEnter += (s, e) => pnlCard.BackColor = ColorCardHover;
+                ctrl.MouseEnter += (s, e) => {
+                    pnlCard.BackColor = ColorCardHover;
+                    pnlAvatar.Invalidate(); // 重繪圓點邊框符合卡片底色
+                };
                 ctrl.MouseLeave += (s, e) =>
                 {
                     if (!pnlCard.ClientRectangle.Contains(pnlCard.PointToClient(Cursor.Position)))
+                    {
                         pnlCard.BackColor = ColorCardBg;
+                        pnlAvatar.Invalidate();
+                    }
                 };
             }
 
             ApplyHover(pnlCard);
+            ApplyHover(pnlNameRow);
             ApplyHover(lblUsername);
             ApplyHover(lblTag);
             ApplyHover(lblSubtitle);
@@ -631,7 +667,7 @@ namespace discord_app.Forms
 
             // 組裝進卡片 Panel
             pnlCard.Controls.AddRange(new Control[] {
-                pnlAvatar, lblUsername, lblTag, lblSubtitle, btnDelete
+                pnlAvatar, pnlNameRow, lblSubtitle, btnDelete
             });
 
             return pnlCard;
